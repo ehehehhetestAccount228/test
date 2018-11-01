@@ -19,7 +19,8 @@
         canvas.width  = window.innerWidth-20;
         canvas.height = window.innerHeight-20;
 
-        function drawPoint(inputx,inputy){
+        function drawPoint(inputx,inputy,hex){
+            context.fillStyle="#"+hex;
             context.fillRect(inputx, inputy, 5, 5);
         }
         
@@ -39,7 +40,7 @@
         }, false);
 
         socket.on('pointers', function(event){
-            drawPoint(event.x,event.y)
+            drawPoint(event.x,event.y,event.hex)
         });
             
         
