@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+        #can{
+            background-color: aliceblue;
+        }
+    </style>
+  </head>
+  <body>
+        <script src="/socket.io/socket.io.js"></script>
+    <canvas id="can" width="700" height="700"></canvas>
+    <script>
+        var socket = io();
+        var canvas = document.querySelector("#can");
+        var context = canvas.getContext("2d");
+        var connection;
+        canvas.width  = window.innerWidth-20;
+        canvas.height = window.innerHeight-20;
+
+        function drawPoint(inputx,inputy){
+            context.fillRect(inputx, inputy, 5, 5);
+        }
+        
+        function YourNewPoint(x,y){
+            socket.emit('pointers',{x:x,y:y})
+            drawPoint(x,y)
+        }
+ 
+        canvas.addEventListener('mousemove', function(event) { 
+            var x = event.pageX - canvas.offsetLeft;
+            var y = event.pageY - canvas.offsetTop;
+                
+            if (event.buttons) { // If mouse movement with mouse pressed
+                drawPoint(x,y)
+                YourNewPoint(x,y)
+            }
+        }, false);
+
+        socket.on('pointers', function(event){
+            drawPoint(event.x,event.y)
+        });
+            
+        
+    </script>
+  </body>
+</html>
