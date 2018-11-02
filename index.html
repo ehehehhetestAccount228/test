@@ -9,7 +9,8 @@
     </style>
   </head>
   <body>
-        <script src="/socket.io/socket.io.js"></script>
+    <h1 id="UsersCounter" style="position:absolute;  right: 0; bottom: 0; margin-right: 20px; color:darkgray;"></h1>
+    <script src="/socket.io/socket.io.js"></script>
     <canvas id="can"></canvas>
     <script>
         var socket = io();
@@ -62,6 +63,9 @@
         socket.on('pointers', function(event){   
             drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
         });  
+        socket.on('users', function (event) {
+            document.getElementById('UsersCounter').innerHTML = `Online ${event.count}`;
+        });       
     </script>
   </body>
 </html>
