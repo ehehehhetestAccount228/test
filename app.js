@@ -21,12 +21,15 @@ io.on('connection', function(socket){
     socket.broadcast.emit('users', {count: io.engine.clientsCount});
 
     socket.on('pointers', function(msg){
-        rateLimiter.consume(socket.handshake.address).then(() => {
-            socket.broadcast.emit('pointers', {x:msg.x,y:msg.y,hex:socket.id});
-        }).catch((rejRes) => {
-            // When rate limitations is exteed ban IP (add to banned IP array). Yes. just Permanent. ban.!
-            ips.push(socket.handshake.address)
-          });
+        if (!ips.includes(socket.handshake.address)){ // Check for websocket ip blocklist
+            rateLimiter.consume(socket.handshake.address).then(() => {
+                socket.broadcast.emit('pointers', {x:msg.x,y:msg.y,hex:socket.id});
+            }).catch((rejRes) => {
+                // When rate limitations is exteed ban IP (add to banned IP array). Yes. just Permanent. ban.!
+                ips.push(socket.handshake.address)
+            });
+        }
+
     });
     socket.on('disconnect', function(msg) {
         socket.broadcast.emit('users', {count: io.engine.clientsCount});
