@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "socket.io": "",
+        "express": "",
+        "ipfilter": "",
+        "log4js": "",
+        "rate-limiter-flexible": ""
+    }
+}
