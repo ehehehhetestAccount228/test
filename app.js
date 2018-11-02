@@ -3,6 +3,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var clients = io.sockets.clients();
 
+// String to color function
 function hashCode(str) { // java String#hashCode
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
@@ -18,15 +19,16 @@ function intToRGB(i){
 
     return "00000".substring(0, 6 - c.length) + c;
 }
-
+// END
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function(socket){
-    var address = socket.handshake.address;
     socket.on('pointers', function(msg){
-        socket.broadcast.emit('pointers', {x:msg.x,y:msg.y,hex:intToRGB(hashCode(address))});
+        console.log(socket.id)
+        socket.send(socket.id);
+        socket.broadcast.emit('pointers', {x:msg.x,y:msg.y,hex:socket.id});
     });
 });
 

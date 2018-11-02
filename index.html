@@ -10,15 +10,28 @@
   </head>
   <body>
         <script src="/socket.io/socket.io.js"></script>
-    <canvas id="can" width="700" height="700"></canvas>
+    <canvas id="can"></canvas>
     <script>
         var socket = io();
         var canvas = document.querySelector("#can");
         var context = canvas.getContext("2d");
-        var connection;
         canvas.width  = window.innerWidth-20;
         canvas.height = window.innerHeight-20;
+        function hashCode(str) { // java String#hashCode
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return hash;
+        } 
 
+        function intToRGB(i){
+            var c = (i & 0x00FFFFFF)
+                .toString(16)
+                .toUpperCase();
+
+            return "00000".substring(0, 6 - c.length) + c;
+        }
         function drawPoint(inputx,inputy,hex){
             context.fillStyle="#"+hex;
             context.fillRect(inputx, inputy, 5, 5);
@@ -34,16 +47,21 @@
             var y = event.pageY - canvas.offsetTop;
                 
             if (event.buttons) { // If mouse movement with mouse pressed
-                drawPoint(x,y)
+                drawPoint(x,y,intToRGB(hashCode(socket.id)))
                 YourNewPoint(x,y)
             }
         }, false);
 
-        socket.on('pointers', function(event){
-            drawPoint(event.x,event.y,event.hex)
+        canvas.addEventListener('mousedown', function(event) { 
+            var x = event.pageX - canvas.offsetLeft;
+            var y = event.pageY - canvas.offsetTop;
+            YourNewPoint(x,y)
+            drawPoint(x,y,intToRGB(hashCode(socket.id)))
         });
-            
-        
+
+        socket.on('pointers', function(event){   
+            drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
+        });  
     </script>
   </body>
 </html>
