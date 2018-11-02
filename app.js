@@ -8,13 +8,15 @@ app.get('/', function (req, res) {
 });
 
 io.on('connection', function (socket) {
-    socket.broadcast.emit('users', { count: io.engine.clientsCount });
+    let clientCount = io.engine.clientsCount;
+
+    socket.broadcast.emit('users', { count: clientCount })
 
     socket.on('pointers', function (msg) {
         socket.broadcast.emit('pointers', { x: msg.x, y: msg.y, hex: socket.id });
     });
     socket.on('disconnect', function (msg) {
-        socket.broadcast.emit('users', { count: io.engine.clientsCount });
+        socket.broadcast.emit('users', { count: clientCount });
     });
 });
 

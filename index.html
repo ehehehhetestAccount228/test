@@ -25,9 +25,7 @@
             }
             return hash;
         } 
-        socket.on('users', function (event) {
-            document.getElementById('UsersCounter').innerHTML = `Online ${event.count}`;
-        });
+
         function intToRGB(i){
             var c = (i & 0x00FFFFFF)
                 .toString(16)
@@ -64,7 +62,10 @@
 
         socket.on('pointers', function(event){   
             drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
-        });         
+        });  
+        socket.on('users', function (event) {
+            document.getElementById('UsersCounter').innerHTML = `Online ${event.count}`;
+        });       
         window.onresize = function() {
             canvas.width  = window.innerWidth-20;
             canvas.height = window.innerHeight-20;          
