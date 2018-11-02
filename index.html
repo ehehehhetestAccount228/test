@@ -65,7 +65,11 @@
         });  
         socket.on('users', function (event) {
             document.getElementById('UsersCounter').innerHTML = `Online ${event.count}`;
-        });       
+        });
+        window.onresize = function() {
+            canvas.width  = window.innerWidth-20;
+            canvas.height = window.innerHeight-20;          
+        };
     </script>
   </body>
 </html>
