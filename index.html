@@ -70,7 +70,10 @@
         }
         function drawPoint(inputx,inputy,hex){
             context.fillStyle="#"+hex;
-            context.fillRect(inputx, inputy, 5, 5);
+            //context.fillRect(inputx, inputy, 5, 5);
+            context.beginPath();
+            context.arc(inputx, inputy, 4, 0, 2 * Math.PI, true);
+            context.fill();
         }
         
         function YourNewPoint(x,y){
