@@ -118,10 +118,10 @@
         };
 
         window.onblur = function(){
-            isUserOnPage=false
+            isUserOnPage=true
         }
         window.focus = function(){
-            isUserOnPage=true
+            isUserOnPage=false
         }
         function playSound() {
           var sound = document.getElementById("audio");
