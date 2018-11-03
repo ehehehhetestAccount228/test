@@ -1,22 +1,23 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var clients = io.sockets.clients();
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', function (socket) {
-    let clientCount = io.engine.clientsCount;
+app.get('/getUsersCount', function (req, res) {
+    res.json({count: io.sockets.server.eio.clientsCount})
+});
 
-    socket.broadcast.emit('users', { count: clientCount })
+io.on('connection', function (socket) {
+    socket.broadcast.emit('users', { count: io.sockets.server.eio.clientsCount });
 
     socket.on('pointers', function (msg) {
         socket.broadcast.emit('pointers', { x: msg.x, y: msg.y, hex: socket.id });
     });
     socket.on('disconnect', function (msg) {
-        socket.broadcast.emit('users', { count: clientCount });
+        socket.broadcast.emit('users', { count: io.sockets.server.eio.clientsCount });
     });
 });
 

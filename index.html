@@ -38,6 +38,18 @@
             return hash;
         } 
 
+        function UpdateHTMLCounter(count){
+            document.getElementById('UsersCounter').innerHTML = `Online ${count}`;
+        }
+
+        fetch('getUsersCount')
+        .then((resp) => resp.json()) // Transform the data into json
+        .then(function(data) {
+            // Create and append the li's to the ul
+            console.log('http req')
+            UpdateHTMLCounter(data.count)
+        })
+
         function intToRGB(i){
             var c = (i & 0x00FFFFFF)
                 .toString(16)
@@ -76,7 +88,8 @@
             drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
         });  
         socket.on('users', function (event) {
-            document.getElementById('UsersCounter').innerHTML = `Online ${event.count}`;
+            console.log('Socket says'+event.count)
+            UpdateHTMLCounter(event.count)
         });       
         window.onresize = function() {
             canvas.width  = window.innerWidth-20;
