@@ -10,6 +10,10 @@ app.get('/getUsersCount', function (req, res) {
     res.json({count: io.sockets.server.eio.clientsCount})
 });
 
+app.get('/beep.mp3', (req,res)=>{
+    res.sendFile(__dirname + '/beep.mp3');
+})
+
 io.on('connection', function (socket) {
     socket.broadcast.emit('users', { count: io.sockets.server.eio.clientsCount });
 

@@ -28,7 +28,8 @@
     </style>
   </head>
   <body> 
-    <button onclick="return AlertAll()" class="AlertButton">The nobody there button!</button>
+    <audio id="audio" src="/beep.mp3" preload="none"></audio>
+    <button onclick="return AlertAll()" class="AlertButton">Beep AFK!</button>
     <h1 id="UsersCounter" unselectable="on" class="unselectable counter"></h1>
     <script src="/socket.io/socket.io.js"></script>
     <canvas id="can"></canvas>
@@ -95,6 +96,7 @@
         });
 
         function AlertAll(){
+            playSound()
             socket.emit('alert')
         }
 
@@ -103,7 +105,7 @@
         });
         socket.on('alert', function(event){   
             if (!isUserOnPage) { // Alert only if user is not on the page
-                alert('Draw something, we are bored without you :(')
+                playSound()
             }
         }); 
         socket.on('users', function (event) {
@@ -120,6 +122,10 @@
         }
         window.focus = function(){
             isUserOnPage=true
+        }
+        function playSound() {
+          var sound = document.getElementById("audio");
+          sound.play();
         }
     </script>
   </body>
