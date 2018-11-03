@@ -4,12 +4,24 @@
     <title>Drawify (Realtime drawing)</title>
     <style>
         #can{
-            background-color: aliceblue;
+            background-color: aliceblue;        
+        }
+        .counter {
+            position:absolute;  right: 0; 
+            bottom: 0; 
+            margin-right: 20px; 
+            color:darkgray;
+        }
+        .unselectable {
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            user-select: none;    
         }
     </style>
   </head>
-  <body>
-    <h1 id="UsersCounter" style="position:absolute;  right: 0; bottom: 0; margin-right: 20px; color:darkgray;"></h1>
+  <body> 
+    <h1 id="UsersCounter" unselectable="on" class="unselectable counter"></h1>
     <script src="/socket.io/socket.io.js"></script>
     <canvas id="can"></canvas>
     <script>
@@ -70,6 +82,7 @@
             canvas.width  = window.innerWidth-20;
             canvas.height = window.innerHeight-20;          
         };
+
     </script>
   </body>
 </html>
