@@ -16,6 +16,9 @@ io.on('connection', function (socket) {
     socket.on('pointers', function (msg) {
         socket.broadcast.emit('pointers', { x: msg.x, y: msg.y, hex: socket.id });
     });
+    socket.on('alert', function (msg) {
+        socket.broadcast.emit('alert', { });
+    });
     socket.on('disconnect', function (msg) {
         socket.broadcast.emit('users', { count: io.sockets.server.eio.clientsCount });
     });

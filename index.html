@@ -7,7 +7,8 @@
             background-color: aliceblue;        
         }
         .counter {
-            position:absolute;  right: 0; 
+            position:absolute;  
+            right: 0; 
             bottom: 0; 
             margin-right: 20px; 
             color:darkgray;
@@ -18,9 +19,16 @@
             -webkit-user-select: none;
             user-select: none;    
         }
+        .AlertButton{
+            position:absolute;  
+            right: 0; 
+            margin-right: 20px; 
+            margin-top: 10px;
+        }
     </style>
   </head>
   <body> 
+    <button onclick="return AlertAll()" class="AlertButton">The nobody there button!</button>
     <h1 id="UsersCounter" unselectable="on" class="unselectable counter"></h1>
     <script src="/socket.io/socket.io.js"></script>
     <canvas id="can"></canvas>
@@ -28,6 +36,7 @@
         var socket = io();
         var canvas = document.querySelector("#can");
         var context = canvas.getContext("2d");
+        var isUserOnPage;
         canvas.width  = window.innerWidth-20;
         canvas.height = window.innerHeight-20;
         function hashCode(str) { // java String#hashCode
@@ -49,6 +58,7 @@
             console.log('http req')
             UpdateHTMLCounter(data.count)
         })
+        
 
         function intToRGB(i){
             var c = (i & 0x00FFFFFF)
@@ -84,9 +94,18 @@
             drawPoint(x,y,intToRGB(hashCode(socket.id)))
         });
 
+        function AlertAll(){
+            socket.emit('alert')
+        }
+
         socket.on('pointers', function(event){   
             drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
-        });  
+        });
+        socket.on('alert', function(event){   
+            if (!isUserOnPage) { // Alert only if user is not on the page
+                alert('Draw something, we are bored without you :(')
+            }
+        }); 
         socket.on('users', function (event) {
             console.log('Socket says'+event.count)
             UpdateHTMLCounter(event.count)
@@ -96,6 +115,12 @@
             canvas.height = window.innerHeight-20;          
         };
 
+        window.onblur = function(){
+            isUserOnPage=false
+        }
+        window.focus = function(){
+            isUserOnPage=true
+        }
     </script>
   </body>
 </html>
