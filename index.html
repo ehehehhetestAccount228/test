@@ -23,20 +23,20 @@
             position:absolute;  
             right: 0; 
             margin-right: 20px; 
-            margin-top: 10px;
+            margin-top: 60px;
         }
         .ClearButton {
             position:absolute;  
             right: 0; 
             margin-right: 20px; 
-            margin-top: 60px;            
+            margin-top: 10px;            
         }
     </style>
   </head>
   <body> 
     <audio id="audio" src="/beep.mp3" preload="none"></audio>
-    <button onclick="return AlertAll()" class="AlertButton">Beep AFK!</button>
     <button onclick="return ClearAll()" class="ClearButton">Clear the your canvas!</button>
+    <button onclick="return AlertAll()" class="AlertButton">Beep AFK!</button>
     <h1 id="UsersCounter" unselectable="on" class="unselectable counter"></h1>
     <script src="/socket.io/socket.io.js"></script>
     <canvas id="can"></canvas>
@@ -128,10 +128,10 @@
         };
 
         window.onblur = function(){
-            isUserOnPage=true
+            isUserOnPage=false
         }
         window.focus = function(){
-            isUserOnPage=false
+            isUserOnPage=true
         }
         function playSound() {
           var sound = document.getElementById("audio");
