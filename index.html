@@ -154,6 +154,7 @@
         });
         e.preventDefault()
         canvas.dispatchEvent(mouseEvent);
+            drawPoint(mouseEvent.clientX,mouseEvent.clientY,intToRGB(hashCode(socket.id)))
             YourNewPoint(mouseEvent.clientX,mouseEvent.clientY)
         }, false);
 
