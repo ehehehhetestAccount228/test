@@ -145,6 +145,18 @@
                 // On cancel don't do anythinkg :)
             }
         }
+
+        canvas.addEventListener("touchmove", function (e) {
+        var touch = e.touches[0];
+        var mouseEvent = new MouseEvent("mousemove", {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        e.preventDefault()
+        canvas.dispatchEvent(mouseEvent);
+            YourNewPoint(mouseEvent.clientX,mouseEvent.clientY)
+        }, false);
+
     </script>
   </body>
 </html>
