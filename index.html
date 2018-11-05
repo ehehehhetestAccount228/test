@@ -64,7 +64,6 @@
         .then((resp) => resp.json()) // Transform the data into json
         .then(function(data) {
             // Create and append the li's to the ul
-            console.log('http req')
             UpdateHTMLCounter(data.count)
         })
         
@@ -120,7 +119,6 @@
             }
         }); 
         socket.on('users', function (event) {
-            console.log('Socket says'+event.count)
             UpdateHTMLCounter(event.count)
         });       
         window.onresize = function() {
@@ -157,7 +155,6 @@
             drawPoint(mouseEvent.clientX,mouseEvent.clientY,intToRGB(hashCode(socket.id)))
             YourNewPoint(mouseEvent.clientX,mouseEvent.clientY)
         }, false);
-
     </script>
   </body>
 </html>
