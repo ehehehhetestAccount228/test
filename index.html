@@ -4,157 +4,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Drawify (Realtime drawing)</title>
     <style>
-        #can{
-            background-color: aliceblue;        
-        }
-        .counter {
-            position:absolute;  
-            right: 0; 
-            bottom: 0; 
-            margin-right: 20px; 
-            color:darkgray;
-        }
-        .unselectable {
-            -moz-user-select: none;
-            -khtml-user-select: none;
-            -webkit-user-select: none;
-            user-select: none;    
-        }
-        .AlertButton{
-            position:absolute;  
-            right: 0; 
-            margin-right: 20px; 
-            margin-top: 60px;
-        }
-        .ClearButton {
-            position:absolute;  
-            right: 0; 
-            margin-right: 20px; 
-            margin-top: 10px;            
-        }
+      #canvas {
+        background-color: aliceblue;
+      }
+
+      * {
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;    
+      }
+
+      .clearBtn, .beepBtn, .users {
+        margin-right: 20px; 
+        position: absolute;  
+        right: 0;
+      }
+
+      .clearBtn {
+        margin-top: 10px;            
+      }
+
+      .beepBtn {
+        margin-top: 60px;
+      }
+
+      .users {
+        bottom: 0; 
+        color: darkgray;
+      }
     </style>
   </head>
   <body> 
     <audio id="audio" src="/beep.mp3" preload="none"></audio>
-    <button onclick="return ClearAll()" class="ClearButton unselectable">Clear the your canvas!</button>
-    <button onclick="return AlertAll()" class="AlertButton unselectable">Beep AFK!</button>
-    <h1 id="UsersCounter" unselectable="on" class="unselectable counter"></h1>
+    <canvas id="canvas"></canvas>
+    <button class="clearBtn" onclick="return clearCanvas()">Clear the canvas!</button>
+    <button class="beepBtn" onclick="return sendBeep()">Beep AFK!</button>
+    <h1 id="users" class="users"></h1>
     <script src="/socket.io/socket.io.js"></script>
-    <canvas id="can"></canvas>
     <script>
-        var socket = io();
-        var canvas = document.querySelector("#can");
-        var context = canvas.getContext("2d");
-        var isUserOnPage;
-        canvas.width  = window.innerWidth-20;
+      var sound = document.getElementById("audio");
+      var users = document.getElementById("users");
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+      var afk = false;
+      var socket = io();
+
+      canvas.width  = window.innerWidth-20;
+      canvas.height = window.innerHeight-20;
+
+      function toHex(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var c = (hash & 0x00FFFFFF).toString(16);
+        return "00000".substring(0, 6 - c.length) + c;
+      }
+      
+      function drawPoint(x, y, id) {
+        ctx.fillStyle = "#"+toHex(id);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      function clearCanvas() {
+        if (confirm("Clear your canvas?")) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      
+      function sendPoint(x, y) {
+        socket.emit('point', { x: x, y: y });
+        drawPoint(x, y, socket.id);
+      }
+
+      function sendBeep() {
+        socket.emit('alert');
+        sound.play();
+      }
+
+      canvas.addEventListener('mousemove', (event) => {
+        var x = event.pageX - canvas.offsetLeft;
+        var y = event.pageY - canvas.offsetTop;
+        if (event.buttons) {
+          sendPoint(x,y);
+        }
+      });
+
+      canvas.addEventListener('mousedown', (event) => { 
+        var x = event.pageX - canvas.offsetLeft;
+        var y = event.pageY - canvas.offsetTop;
+        sendPoint(x, y);
+      });
+
+      canvas.addEventListener("touchmove", (event) => {
+        var touch = event.targetTouches[0];
+        var x = touch.pageX - canvas.offsetLeft;
+        var y = touch.pageY - canvas.offsetTop;
+        sendPoint(x, y)
+      });
+
+      socket.on('point', (event) => {   
+        drawPoint(event.x, event.y, event.id);
+      });
+
+      socket.on('beep', () => {
+          if (afk) sound.play();
+      });
+
+      socket.on('users', (data) => {
+        users.innerHTML = `Online ${data.count}`;
+      });
+
+      window.addEventListener('resize', () => {
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        canvas.width = window.innerWidth-20;
         canvas.height = window.innerHeight-20;
-        function hashCode(str) { // java String#hashCode
-            var hash = 0;
-            for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return hash;
-        } 
+        ctx.putImageData(imageData, 0, 0);
+      });
 
-        function UpdateHTMLCounter(count){
-            document.getElementById('UsersCounter').innerHTML = `Online ${count}`;
-        }
+      window.addEventListener('blur', () => {
+        afk = true;
+      });
 
-        fetch('getUsersCount')
-        .then((resp) => resp.json()) // Transform the data into json
-        .then(function(data) {
-            // Create and append the li's to the ul
-            UpdateHTMLCounter(data.count)
-        })
-        
-
-        function intToRGB(i){
-            var c = (i & 0x00FFFFFF)
-                .toString(16)
-                .toUpperCase();
-
-            return "00000".substring(0, 6 - c.length) + c;
-        }
-        function drawPoint(inputx,inputy,hex){
-            context.fillStyle="#"+hex;
-            //context.fillRect(inputx, inputy, 5, 5);
-            context.beginPath();
-            context.arc(inputx, inputy, 4, 0, 2 * Math.PI, true);
-            context.fill();
-        }
-        
-        function YourNewPoint(x,y){
-            socket.emit('pointers',{x:x,y:y})
-            drawPoint(x,y)
-        }
- 
-        canvas.addEventListener('mousemove', function(event) { 
-            var x = event.pageX - canvas.offsetLeft;
-            var y = event.pageY - canvas.offsetTop;
-                
-            if (event.buttons) { // If mouse movement with mouse pressed
-                drawPoint(x,y,intToRGB(hashCode(socket.id)))
-                YourNewPoint(x,y)
-            }
-        }, false);
-
-        canvas.addEventListener('mousedown', function(event) { 
-            var x = event.pageX - canvas.offsetLeft;
-            var y = event.pageY - canvas.offsetTop;
-            YourNewPoint(x,y)
-            drawPoint(x,y,intToRGB(hashCode(socket.id)))
-        });
-
-        function AlertAll(){
-            playSound()
-            socket.emit('alert')
-        }
-
-        socket.on('pointers', function(event){   
-            drawPoint(event.x,event.y,intToRGB(hashCode(event.hex)))
-        });
-        socket.on('alert', function(event){   
-            if (!isUserOnPage) { // Alert only if user is not on the page
-                playSound()
-            }
-        }); 
-        socket.on('users', function (event) {
-            UpdateHTMLCounter(event.count)
-        });       
-        window.onresize = function() {
-            canvas.width  = window.innerWidth-20;
-            canvas.height = window.innerHeight-20;          
-        };
-
-        window.onblur = function(){
-            isUserOnPage=false
-        }
-        window.focus = function(){
-            isUserOnPage=true
-        }
-        function playSound() {
-          var sound = document.getElementById("audio");
-          sound.play();
-        }
-        function ClearAll(){
-            if (confirm("Sure clear full canvas (only your canvas)?")) {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-            } else {
-                // On cancel don't do anythinkg :)
-            }
-        }
-
-        canvas.addEventListener("touchmove", function (e) {
-        var touch = e.touches[0];
-        var mouseEvent = new MouseEvent("mousemove", {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        e.preventDefault()
-        canvas.dispatchEvent(mouseEvent);
-            drawPoint(mouseEvent.clientX,mouseEvent.clientY,intToRGB(hashCode(socket.id)))
-            YourNewPoint(mouseEvent.clientX,mouseEvent.clientY)
-        }, false);
+      window.addEventListener('focus', () => {
+        afk = false;
+      });
     </script>
   </body>
 </html>
