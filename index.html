@@ -4,18 +4,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Drawify (Realtime drawing)</title>
     <style>
+      * {
+        user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
       #canvas {
         background-color: aliceblue;
       }
 
-      * {
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        user-select: none;    
-      }
-
-      .clearBtn, .beepBtn, .users {
+      .clearBtn, .beepBtn, .muteBtn, .status {
         margin-right: 20px; 
         position: absolute;  
         right: 0;
@@ -29,7 +33,11 @@
         margin-top: 60px;
       }
 
-      .users {
+      .muteBtn {
+        margin-top: 110px;
+      }
+
+      .status {
         bottom: 0; 
         color: darkgray;
       }
@@ -40,18 +48,65 @@
     <canvas id="canvas"></canvas>
     <button class="clearBtn" onclick="return clearCanvas()">Clear the canvas!</button>
     <button class="beepBtn" onclick="return sendBeep()">Beep AFK!</button>
-    <h1 id="users" class="users"></h1>
+    <button id="muteBtn" class="muteBtn" onclick="return toggleMute()">Mute sounds</button>
+    <h1 id="status" class="status">Connecting</h1>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      var sound = document.getElementById("audio");
-      var users = document.getElementById("users");
-      var canvas = document.getElementById("canvas");
-      var ctx = canvas.getContext("2d");
+      var sound = document.getElementById('audio');
+      var muteBtn = document.getElementById('muteBtn');
+      var statusElement = document.getElementById('status');
+      var canvas = document.getElementById('canvas');
+      var ctx = canvas.getContext('2d');
       var afk = false;
+      var muted = localStorage.getItem('muted') === 'true';
+      var id = '';
       var socket = io();
+
+      socket.on('connect', () => {
+        id = socket.id;
+        statusElement.textContent = 'Connected';
+      });
+
+      socket.on('reconnecting', () => {
+        statusElement.textContent = 'Reconnecting';
+      })
+
+      var points = [];
+      var now = Date.now();
+      setInterval(() => {
+        if (socket.connected && points.length > 0) {
+          socket.emit('points', points);
+          points = [];
+        }
+        now = Date.now();
+      }, 500);
 
       canvas.width  = window.innerWidth-20;
       canvas.height = window.innerHeight-20;
+
+      function clearCanvas() {
+        if (confirm('Clear your canvas?')) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      function sendBeep() {
+        if (!muted) sound.play();
+        socket.emit('beep');
+      }
+
+      if (muted) {
+        muteBtn.textContent = 'Unmute sounds';
+      }
+      function toggleMute() {
+        muted = !muted;
+        if (muted) {
+          muteBtn.textContent = 'Unmute sounds';
+        } else {
+          muteBtn.textContent = 'Mute sounds';
+        }
+        localStorage.setItem('muted', muted);
+      }
 
       function toHex(str) {
         var hash = 0;
@@ -68,54 +123,50 @@
         ctx.arc(x, y, 4, 0, Math.PI*2);
         ctx.fill();
       }
-
-      function clearCanvas() {
-        if (confirm("Clear your canvas?")) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      }
       
       function sendPoint(x, y) {
-        socket.emit('point', { x: x, y: y });
-        drawPoint(x, y, socket.id);
-      }
-
-      function sendBeep() {
-        socket.emit('alert');
-        sound.play();
+        drawPoint(x, y, id);
+        points.push({ x: x, y: y, delay: Date.now()-now });
       }
 
       canvas.addEventListener('mousemove', (event) => {
         var x = event.pageX - canvas.offsetLeft;
         var y = event.pageY - canvas.offsetTop;
         if (event.buttons) {
-          sendPoint(x,y);
+          sendPoint(x, y);
         }
       });
 
-      canvas.addEventListener('mousedown', (event) => { 
+      canvas.addEventListener('mousedown', (event) => {
         var x = event.pageX - canvas.offsetLeft;
         var y = event.pageY - canvas.offsetTop;
         sendPoint(x, y);
       });
 
-      canvas.addEventListener("touchmove", (event) => {
+      canvas.addEventListener('touchmove', (event) => {
+        event.preventDefault();
         var touch = event.targetTouches[0];
         var x = touch.pageX - canvas.offsetLeft;
         var y = touch.pageY - canvas.offsetTop;
         sendPoint(x, y)
       });
 
-      socket.on('point', (event) => {   
-        drawPoint(event.x, event.y, event.id);
+      socket.on('points', (data) => {
+        for (var point of data) {
+          if (point.id != socket.id) {
+            setTimeout((point) => {
+              drawPoint(point.x, point.y, point.id);
+            }, point.delay, point);
+          }
+        }
       });
 
       socket.on('beep', () => {
-          if (afk) sound.play();
+        if (afk && !muted) sound.play();
       });
 
       socket.on('users', (data) => {
-        users.innerHTML = `Online ${data.count}`;
+        statusElement.textContent = `Online ${data.count}`;
       });
 
       window.addEventListener('resize', () => {
