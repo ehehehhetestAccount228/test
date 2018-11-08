@@ -19,7 +19,7 @@
         background-color: aliceblue;
       }
 
-      .clearBtn, .beepBtn, .muteBtn, .users {
+      .clearBtn, .beepBtn, .muteBtn, .status {
         margin-right: 20px; 
         position: absolute;  
         right: 0;
@@ -37,7 +37,7 @@
         margin-top: 110px;
       }
 
-      .users {
+      .status {
         bottom: 0; 
         color: darkgray;
       }
@@ -49,22 +49,32 @@
     <button class="clearBtn" onclick="return clearCanvas()">Clear the canvas!</button>
     <button class="beepBtn" onclick="return sendBeep()">Beep AFK!</button>
     <button id="muteBtn" class="muteBtn" onclick="return toggleMute()">Mute sounds</button>
-    <h1 id="users" class="users"></h1>
+    <h1 id="status" class="status">Connecting</h1>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var sound = document.getElementById('audio');
       var muteBtn = document.getElementById('muteBtn');
-      var users = document.getElementById('users');
+      var statusElement = document.getElementById('status');
       var canvas = document.getElementById('canvas');
       var ctx = canvas.getContext('2d');
       var afk = false;
       var muted = localStorage.getItem('muted') === 'true';
+      var id = '';
       var socket = io();
+
+      socket.on('connect', () => {
+        id = socket.id;
+        statusElement.textContent = 'Connected';
+      });
+
+      socket.on('reconnecting', () => {
+        statusElement.textContent = 'Reconnecting';
+      })
 
       var points = [];
       var now = Date.now();
       setInterval(() => {
-        if (points.length > 0) {
+        if (socket.connected && points.length > 0) {
           socket.emit('points', points);
           points = [];
         }
@@ -75,7 +85,7 @@
       canvas.height = window.innerHeight-20;
 
       function clearCanvas() {
-        if (confirm("Clear your canvas?")) {
+        if (confirm('Clear your canvas?')) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
       }
@@ -86,14 +96,14 @@
       }
 
       if (muted) {
-        muteBtn.innerText = 'Unmute sounds';
+        muteBtn.textContent = 'Unmute sounds';
       }
       function toggleMute() {
         muted = !muted;
         if (muted) {
-          muteBtn.innerText = 'Unmute sounds';
+          muteBtn.textContent = 'Unmute sounds';
         } else {
-          muteBtn.innerText = 'Mute sounds';
+          muteBtn.textContent = 'Mute sounds';
         }
         localStorage.setItem('muted', muted);
       }
@@ -115,7 +125,7 @@
       }
       
       function sendPoint(x, y) {
-        drawPoint(x, y, socket.id);
+        drawPoint(x, y, id);
         points.push({ x: x, y: y, delay: Date.now()-now });
       }
 
@@ -156,7 +166,7 @@
       });
 
       socket.on('users', (data) => {
-        users.innerHTML = `Online ${data.count}`;
+        statusElement.textContent = `Online ${data.count}`;
       });
 
       window.addEventListener('resize', () => {
