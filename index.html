@@ -102,7 +102,10 @@
 
       function clearCanvas() {
         if (confirm('Clear your canvas?')) {
-          tiledCanvas.context.clearRect(0, 0, canvas.width, canvas.height);
+          tiledCanvas.context.clearRect(0, 0, maxborderWidth, maxborderHeight);
+          // clear and DRAW again the GRID
+          makeAGrid()
+          tiledCanvas.execute();
         }
       }
 
@@ -241,19 +244,22 @@
 
       
       // START DRAW THE GRID autor: https://stackoverflow.com/a/11736122/7415288
-      for (var x = 0.5; x < maxborderWidth; x += 10) {
-      tiledCanvas.context.moveTo(x, 0);
-      tiledCanvas.context.lineTo(x, maxborderHeight);
-      }
+      makeAGrid()
+      function makeAGrid() {
+        for (var x = 0.5; x < maxborderWidth; x += 10) {
+          tiledCanvas.context.moveTo(x, 0);
+          tiledCanvas.context.lineTo(x, maxborderHeight);
+        }
 
-      for (var y = 0.5; y < maxborderHeight; y += 10) {
-        tiledCanvas.context.moveTo(0, y);
-        tiledCanvas.context.lineTo(maxborderWidth, y);
-      }
+        for (var y = 0.5; y < maxborderHeight; y += 10) {
+          tiledCanvas.context.moveTo(0, y);
+          tiledCanvas.context.lineTo(maxborderWidth, y);
+        }
 
-      tiledCanvas.context.strokeStyle = "#eee";
-      tiledCanvas.context.stroke();
-      tiledCanvas.execute();
+        tiledCanvas.context.strokeStyle = "#eee";
+        tiledCanvas.context.stroke();
+        tiledCanvas.execute();
+      }
       // I think i need to add execute() there!
       // END DRAW THE GRID
     </script>
