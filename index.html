@@ -41,6 +41,12 @@
         bottom: 0; 
         color: darkgray;
       }
+      #CurrentCordinates {
+        bottom: 0; 
+        left: 0;
+        margin-left: 10px;
+        color: darkgray;
+      }     
     </style>
   </head>
   <body> 
@@ -50,6 +56,7 @@
     <button class="beepBtn" onclick="return sendBeep()">Beep AFK!</button>
     <button id="muteBtn" class="muteBtn" onclick="return toggleMute()">Mute sounds</button>
     <h1 id="status" class="status">Connecting</h1>
+    <h1 id="CurrentCordinates" class="status"></h1>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/TiledCanvas.js"></script>
 
@@ -57,6 +64,7 @@
       var sound = document.getElementById('audio');
       var muteBtn = document.getElementById('muteBtn');
       var statusElement = document.getElementById('status');
+      var CurrentCursorCodinates = document.getElementById('CurrentCordinates');
       var canvas = document.getElementById('canvas');
       var ctx = canvas.getContext('2d');
       var afk = false;
@@ -66,6 +74,8 @@
       var tiledCanvas = new TiledCanvas(canvas);
       var CurrentFocusX=0, CurrentFocusY=0;
       var maxborderWidth=5000, maxborderHeight=5000;
+      var currentCursorX=0, currentCursorY=0;
+
       tiledCanvas.drawingRegion(0, 0, maxborderWidth, maxborderHeight);
 
       socket.on('connect', () => {
@@ -139,6 +149,11 @@
       canvas.addEventListener('mousemove', (event) => {
         var x = event.pageX - canvas.offsetLeft+CurrentFocusX;
         var y = event.pageY - canvas.offsetTop+CurrentFocusY;
+
+        currentCursorX=x
+        currentCursorY=y
+        CurrentCursorCodinates.textContent = `${currentCursorX} : ${currentCursorY}`;
+
         if (event.buttons) {
           sendPoint(x, y);
         }
