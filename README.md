@@ -12,7 +12,7 @@ $ npm i
 $ pm2 start app.js
 ```
 
-[Full installation guide](https://dev.to/marataziat/how-to-make-the-github-webhook-on-the-digitalocean-droplet-3an8)
+[Full installation guide](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
 ---
 ## To sponsor us:
