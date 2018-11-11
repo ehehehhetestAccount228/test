@@ -41,6 +41,12 @@
         bottom: 0; 
         color: darkgray;
       }
+      #CurrentCordinates {
+        bottom: 0; 
+        left: 0;
+        margin-left: 10px;
+        color: darkgray;
+      }     
     </style>
   </head>
   <body> 
@@ -50,17 +56,27 @@
     <button class="beepBtn" onclick="return sendBeep()">Beep AFK!</button>
     <button id="muteBtn" class="muteBtn" onclick="return toggleMute()">Mute sounds</button>
     <h1 id="status" class="status">Connecting</h1>
+    <h1 id="CurrentCordinates" class="status"></h1>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/TiledCanvas.js"></script>
+
     <script>
       var sound = document.getElementById('audio');
       var muteBtn = document.getElementById('muteBtn');
       var statusElement = document.getElementById('status');
+      var CurrentCursorCodinates = document.getElementById('CurrentCordinates');
       var canvas = document.getElementById('canvas');
       var ctx = canvas.getContext('2d');
       var afk = false;
       var muted = localStorage.getItem('muted') === 'true';
       var id = '';
       var socket = io();
+      var tiledCanvas = new TiledCanvas(canvas);
+      var CurrentFocusX=0, CurrentFocusY=0;
+      var maxborderWidth=5000, maxborderHeight=5000;
+      var currentCursorX=0, currentCursorY=0;
+
+      tiledCanvas.drawingRegion(0, 0, maxborderWidth, maxborderHeight);
 
       socket.on('connect', () => {
         id = socket.id;
@@ -86,7 +102,7 @@
 
       function clearCanvas() {
         if (confirm('Clear your canvas?')) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          tiledCanvas.context.clearRect(0, 0, canvas.width, canvas.height);
         }
       }
 
@@ -118,10 +134,11 @@
       }
       
       function drawPoint(x, y, id) {
-        ctx.fillStyle = "#"+toHex(id);
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI*2);
-        ctx.fill();
+        tiledCanvas.context.beginPath();
+        tiledCanvas.context.fillStyle = "#"+toHex(id);
+        tiledCanvas.context.arc(x, y, 4, 0, Math.PI*2);
+        tiledCanvas.context.fill();
+        tiledCanvas.execute();
       }
       
       function sendPoint(x, y) {
@@ -130,24 +147,29 @@
       }
 
       canvas.addEventListener('mousemove', (event) => {
-        var x = event.pageX - canvas.offsetLeft;
-        var y = event.pageY - canvas.offsetTop;
+        var x = event.pageX - canvas.offsetLeft+CurrentFocusX;
+        var y = event.pageY - canvas.offsetTop+CurrentFocusY;
+
+        currentCursorX=x
+        currentCursorY=y
+        CurrentCursorCodinates.textContent = `${currentCursorX} : ${currentCursorY}`;
+
         if (event.buttons) {
           sendPoint(x, y);
         }
       });
 
       canvas.addEventListener('mousedown', (event) => {
-        var x = event.pageX - canvas.offsetLeft;
-        var y = event.pageY - canvas.offsetTop;
+        var x = event.pageX - canvas.offsetLeft+CurrentFocusX;
+        var y = event.pageY - canvas.offsetTop+CurrentFocusY;
         sendPoint(x, y);
       });
 
       canvas.addEventListener('touchmove', (event) => {
         event.preventDefault();
         var touch = event.targetTouches[0];
-        var x = touch.pageX - canvas.offsetLeft;
-        var y = touch.pageY - canvas.offsetTop;
+        var x = touch.pageX - canvas.offsetLeft+CurrentFocusX;
+        var y = touch.pageY - canvas.offsetTop+CurrentFocusY;
         sendPoint(x, y)
       });
 
@@ -170,10 +192,9 @@
       });
 
       window.addEventListener('resize', () => {
-        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         canvas.width = window.innerWidth-20;
         canvas.height = window.innerHeight-20;
-        ctx.putImageData(imageData, 0, 0);
+        tiledCanvas.redraw()
       });
 
       window.addEventListener('blur', () => {
@@ -183,6 +204,58 @@
       window.addEventListener('focus', () => {
         afk = false;
       });
+
+      function changeViewportAndValues(){
+        // I will add there the LIMITER FOR MAP END!!
+        if (!tiledCanvas.leftTopX<maxborderWidth && !tiledCanvas.leftTopY<maxborderHeight){
+          tiledCanvas.goto(CurrentFocusX, CurrentFocusY);
+        }
+        else {
+          console.log('BORder was reached!')
+        }
+      }
+
+      function checkKey(e) {
+        if (e.keyCode == '38') {
+            // up arrow
+            CurrentFocusY=CurrentFocusY-10
+            changeViewportAndValues()
+        }
+        else if (e.keyCode == '40') {
+            // down arrow
+            CurrentFocusY=CurrentFocusY+10
+            changeViewportAndValues()
+        }
+        else if (e.keyCode == '37') {
+          // left arrow
+          CurrentFocusX=CurrentFocusX-10
+          changeViewportAndValues()
+        }
+        else if (e.keyCode == '39') {
+          // right arrow
+          CurrentFocusX=CurrentFocusX+10
+          changeViewportAndValues()
+        }
+      }
+      document.onkeydown = checkKey;
+
+      
+      // START DRAW THE GRID autor: https://stackoverflow.com/a/11736122/7415288
+      for (var x = 0.5; x < maxborderWidth; x += 10) {
+      tiledCanvas.context.moveTo(x, 0);
+      tiledCanvas.context.lineTo(x, maxborderHeight);
+      }
+
+      for (var y = 0.5; y < maxborderHeight; y += 10) {
+        tiledCanvas.context.moveTo(0, y);
+        tiledCanvas.context.lineTo(maxborderWidth, y);
+      }
+
+      tiledCanvas.context.strokeStyle = "#eee";
+      tiledCanvas.context.stroke();
+      tiledCanvas.execute();
+      // I think i need to add execute() there!
+      // END DRAW THE GRID
     </script>
   </body>
 </html>

@@ -13,6 +13,10 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/TiledCanvas.js', (req, res) => {
+    res.sendFile(__dirname + '/TiledCanvas.js');
+});
+
 app.get('/beep.mp3', (req, res) => {
     res.sendFile(__dirname + '/beep.mp3');
 });
