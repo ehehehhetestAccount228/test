@@ -3,6 +3,7 @@ The realtime canvas drawing app based on socket.io.
 
 # Preview
 ![Preview](https://thumbs.gfycat.com/DrearyRemoteGrasshopper-size_restricted.gif)
+---
 The preview is from a deployed server network ping was ~100
 
 # Installation guide
