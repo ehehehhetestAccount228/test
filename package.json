@@ -4,6 +4,7 @@
         "express": "",
         "simple-node-logger": "",
         "rate-limiter-flexible": "",
-        "canvas": ""
+        "canvas": "",
+        "request": ""
     }
 }

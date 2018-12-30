@@ -5,8 +5,12 @@ const log = require('simple-node-logger').createSimpleFileLogger('game.log');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 var fs = require("fs");
 const { createCanvas, loadImage } = require('canvas')
-const canvas = createCanvas(200, 200)
+const canvas = createCanvas(1600, 920)
 const ctx = canvas.getContext('2d')
+var imgur = require('imgur');
+
+imgur.setCredentials('sykablyat229291292129219321912', process.env.IMGUR_PASSWORD, 'e744a510598f66b'); // Login, password, client code
+ctx.strokeStyle = 'rgb(200,0,0)'
 
 const rateLimiter = new RateLimiterMemory({
     points: 4,
@@ -65,15 +69,15 @@ io.on('connection', (socket) => {
     });
 });
 
-http.listen(80, () => {
-    console.log('listening on *:80');
+http.listen(8080, () => {
+    console.log('listening on *:8080');
 });
 
 setInterval(function (){
-    console.log("Saving")
-    console.log(canvas.toBuffer())
-    console.log(fs.writeFileSync("test.png", canvas.toBuffer()))
-}, 10000) // Do AFTER every 10 seconds
+    fs.writeFileSync("test.png", canvas.toBuffer())
+    imgur.uploadFile('test.png','Y3Xfcvp')
+    ctx.clearRect(0, 0, 1600, 920)
+}, 60*5) // Do every 5 minutes
 
 function toHex(str) {
   var hash = 0;
