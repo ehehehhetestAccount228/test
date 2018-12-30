@@ -9,7 +9,7 @@ const canvas = createCanvas(1600, 920)
 const ctx = canvas.getContext('2d')
 var imgur = require('imgur');
 
-imgur.setCredentials('sykablyat229291292129219321912', process.env.IMGUR_PASSWORD, 'e744a510598f66b'); // Login, password, client code
+imgur.setCredentials('Imgur_login', 'Imgur_password', 'Imgur_Client ID'); // Login, password, client code
 ctx.strokeStyle = 'rgb(200,0,0)'
 
 const rateLimiter = new RateLimiterMemory({
