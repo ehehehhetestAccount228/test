@@ -77,7 +77,7 @@ setInterval(function (){
     fs.writeFileSync("test.png", canvas.toBuffer())
     imgur.uploadFile('test.png','Y3Xfcvp')
     ctx.clearRect(0, 0, 1600, 920)
-}, 60*5) // Do every 5 minutes
+}, 6000*5) // Do every 5 minutes
 
 function toHex(str) {
   var hash = 0;
