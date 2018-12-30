@@ -3,6 +3,10 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const log = require('simple-node-logger').createSimpleFileLogger('game.log');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
+var fs = require("fs");
+const { createCanvas, loadImage } = require('canvas')
+const canvas = createCanvas(200, 200)
+const ctx = canvas.getContext('2d')
 
 const rateLimiter = new RateLimiterMemory({
     points: 4,
@@ -38,8 +42,13 @@ io.on('connection', (socket) => {
         rateLimiter.consume(socket.id).then(() => {
             for (let point of data) {
                 if (point.delay > 500) point.delay = 500;
+                ctx.fillStyle = "#"+toHex(socket.id);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, Math.PI*2, false)
+                ctx.fill()
                 points.push({ x: point.x, y: point.y, id: socket.id, delay: point.delay });
             }
+            ctx.save();
         }).catch(() => {
             log.info(`User ${socket.id} exceeded rate limit`)
         });
@@ -59,3 +68,18 @@ io.on('connection', (socket) => {
 http.listen(80, () => {
     console.log('listening on *:80');
 });
+
+setInterval(function (){
+    console.log("Saving")
+    console.log(canvas.toBuffer())
+    console.log(fs.writeFileSync("test.png", canvas.toBuffer()))
+}, 10000) // Do AFTER every 10 seconds
+
+function toHex(str) {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  var c = (hash & 0x00FFFFFF).toString(16);
+  return "00000".substring(0, 6 - c.length) + c;
+}

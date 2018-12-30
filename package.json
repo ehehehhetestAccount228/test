@@ -3,6 +3,7 @@
         "socket.io": "",
         "express": "",
         "simple-node-logger": "",
-        "rate-limiter-flexible": ""
+        "rate-limiter-flexible": "",
+        "canvas": ""
     }
 }
